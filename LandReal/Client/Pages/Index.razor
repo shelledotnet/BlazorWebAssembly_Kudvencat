@@ -1,0 +1,36 @@
+﻿@page "/"
+
+<SfGrid DataSource="@Employess">
+    <GridColumns>
+        <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID"></GridColumn>
+        <GridColumn Field=@nameof(Employee.FirstName) HeaderText="First Name"></GridColumn>
+        <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"></GridColumn>
+        <GridColumn Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
+        <GridColumn Field=@nameof(Employee.Amount) HeaderText="Amount"></GridColumn>
+    </GridColumns>
+</SfGrid>
+@code{
+    public List<Employee> Employess { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Employess = LoadData();
+    }
+
+    private List<Employee> LoadData()
+    {
+        Employee e1 = new Employee() { EmployeeId = 1, FirstName = "Wale", LastName = "Kingers", Email = "w@yahoo.com", DateOfBirth = new DateTime(1980, 10, 5), Gender = Gender.Male, Amount = 23000, Department = new Department { DepartmentId = 1, DepartmentName = "IT" }, PhotoPath = "images/wale.png" };
+
+
+        Employee e2 = new Employee() { EmployeeId = 2, FirstName = "sade", LastName = "Aperin", Email = "s@yahoo.com", DateOfBirth = new DateTime(1990, 10, 5), Gender = Gender.Female, Amount = 2000, Department = new Department { DepartmentId = 2, DepartmentName = "Control" }, PhotoPath = "images/sade.png" };
+
+
+        Employee e3 = new Employee() { EmployeeId = 1, FirstName = "John", LastName = "Friday", Email = "t@yahoo.com", DateOfBirth = new DateTime(2000, 10, 5), Gender = Gender.Male, Amount = 239000, Department = new Department { DepartmentId = 3, DepartmentName = "Marketing" }, PhotoPath = "images/tade.png" };
+
+        return new List<Employee> { e1, e2, e3 };
+    }
+
+
+   
+
+}
