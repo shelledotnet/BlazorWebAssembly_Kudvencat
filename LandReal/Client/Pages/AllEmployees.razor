@@ -1,0 +1,96 @@
+﻿@page "/allEmployees"
+
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-material {
+        stroke: red;
+    }
+</style>
+
+<SfSpinner @bind-Visible="@SpinnerVisiblity" Label="@SpinnerLabel" Size="90" Type="@SpinnerType.Material"></SfSpinner>
+@if (Employees != null)
+{
+    <div style="width:800px">
+        <SfGrid @ref="@EmployeeGrid" DataSource="@Employees" AllowPaging="true" AllowFiltering="true">
+            <GridFilterSettings Mode="FilterBarMode.Immediate" ImmediateModeDelay="200" Type="Syncfusion.Blazor.Grids.FilterType.Menu">
+              
+            </GridFilterSettings>
+
+            <GridColumns>
+                <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID" 
+                            FilterSettings="@(new FilterSettings() { Type=Syncfusion.Blazor.Grids.FilterType.CheckBox})">
+                            <FilterTemplate>
+
+                                @{ 
+                                    var filterContext = (context as FilterItemTemplateContext);
+                                    var filterValue = filterContext.Value;
+                                    if (Convert.ToInt32(filterValue) <= 9)
+                                    {
+
+                                        filterValue = "0" + filterValue;
+                                    }
+                                    @filterValue;
+                                }
+                            </FilterTemplate>
+
+                </GridColumn>
+                <GridColumn Field=@nameof(Employee.FirstName) HeaderText="First Name"
+                            FilterSettings="@(new FilterSettings() { Type=Syncfusion.Blazor.Grids.FilterType.Excel})"></GridColumn>
+                <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"
+                            FilterSettings="@(new FilterSettings() { Type=Syncfusion.Blazor.Grids.FilterType.Excel})"></GridColumn>
+                <GridColumn AllowFiltering="false" Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
+                <GridColumn Field=@nameof(Employee.Gender) HeaderText="Gender"
+                            FilterSettings="@(new FilterSettings() { Type=Syncfusion.Blazor.Grids.FilterType.FilterBar})">
+                    <FilterTemplate>
+                        <SfDropDownList Placeholder="All" DataSource="@genderDropDownSource" TItem="DropDownListItem" TValue="string">
+                            <DropDownListFieldSettings Value="Value" Text="Text"></DropDownListFieldSettings>
+                            <DropDownListEvents TItem="DropDownListItem" TValue="string" ValueChange="@GenderSelectionChange"></DropDownListEvents>
+                        </SfDropDownList>
+
+                    </FilterTemplate>
+
+                </GridColumn>
+                <GridColumn Format="d" Field=@nameof(Employee.DateOfBirth) HeaderText="Date Of Birth"
+                            FilterSettings="@(new FilterSettings() { Type=Syncfusion.Blazor.Grids.FilterType.Excel})"></GridColumn>
+                <GridColumn AllowGrouping="false" Field=@nameof(Employee.Amount) HeaderText="Amount-(N)"
+                            FilterSettings="@(new FilterSettings() { Type=Syncfusion.Blazor.Grids.FilterType.FilterBar})"></GridColumn>
+            </GridColumns>
+        </SfGrid>
+        </div> 
+}
+
+        @code {
+            public List<Employee> Employees { get; set; }
+
+            List<DropDownListItem> genderDropDownSource = EnumHelper.ConvertEnumToDropDownSource<Gender>("All","All");
+            public SfGrid<Employee> EmployeeGrid { get; set; }
+            protected void GenderSelectionChange(ChangeEventArgs<string,DropDownListItem> args)
+            {
+                if (args.Value=="All")
+                {
+                    EmployeeGrid.ClearFilteringAsync("Gender");
+                }
+                else
+                {
+                    EmployeeGrid.FilterByColumnAsync("Gender", "equal", args.Value);
+                }
+
+            }
+            [Inject]
+            public IEmployeeService employeeService { get; set; }
+
+            public bool SpinnerVisiblity { get; set; }
+
+            public string SpinnerLabel { get; set; } = "Loading fcmb records...";
+
+            protected override async Task OnInitializedAsync()
+            {
+
+                SpinnerVisiblity = true;
+                await Task.Delay(3000);
+                Employees = (await employeeService.GetEmployees()).ToList();
+                SpinnerVisiblity = Employees != null ? false : true;
+                SpinnerLabel = Employees == null ? "unable to load fcmb records contact admin !!!" : SpinnerLabel;
+            }
+
+
+        }

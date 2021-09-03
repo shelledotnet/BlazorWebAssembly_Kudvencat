@@ -1,0 +1,57 @@
+﻿@page "/all"
+
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-material {
+        stroke: red;
+    }
+</style>
+
+<SfSpinner @bind-Visible="@SpinnerVisiblity" Label="@SpinnerLabel" Size="90" Type="@SpinnerType.Material"></SfSpinner>
+@if (Employees != null)
+{
+    <SfGrid DataSource="@Employees" AllowGrouping="true">
+        <GridGroupSettings ShowDropArea="false" Columns="@initialGrouping" ShowGroupedColumn="true" ShowUngroupButton="false" ShowToggleButton="true">
+            <CaptionTemplate>
+                @{ 
+                    var employee = (context as CaptionTemplateContext);
+                    <div>@employee.Field : @employee.Key-@employee.Count Employees</div>
+                }
+            </CaptionTemplate>
+        </GridGroupSettings>
+        <GridColumns>
+            <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID"></GridColumn>
+            <GridColumn Field=@nameof(Employee.FirstName) HeaderText="First Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
+            <GridColumn Format="d" EnableGroupByFormat="true" Field=@nameof(Employee.DateOfBirth) HeaderText="Date Of Birth"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Gender) HeaderText="Gender"></GridColumn>
+            <GridColumn  AllowGrouping="false" Field=@nameof(Employee.Amount) HeaderText="Amount-(N)"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+}
+
+
+@code {
+    public List<Employee> Employees { get; set; }
+
+
+    [Inject]
+    public IEmployeeService employeeService { get; set; }
+
+    public bool SpinnerVisiblity { get; set; }
+
+    public string SpinnerLabel { get; set; } = "Loading fcmb records...";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        SpinnerVisiblity = true;
+        await Task.Delay(3000);
+        Employees = (await employeeService.GetEmployees()).ToList();
+        SpinnerVisiblity = Employees != null ? false : true;
+        SpinnerLabel = Employees == null ? "unable to load fcmb records contact admin !!!" : SpinnerLabel;
+    }
+
+   // var initialGrouping = (new string[] { "Gender", "FirstName" });
+    public string[] initialGrouping { get; set; } = (new string[] { "Gender", "FirstName" });
+}

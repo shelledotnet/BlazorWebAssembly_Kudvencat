@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LandReal.Server.Repository
 {
@@ -20,6 +22,11 @@ namespace LandReal.Server.Repository
         }
         public async Task<Employee> AddEmployee(Employee employee)
         {
+            if (employee.Department !=null)
+            {
+                _appDbContext.Entry(employee.Department).State = EntityState.Unchanged;
+            }
+
             var result = await _appDbContext.Employees.AddAsync(employee);
             await _appDbContext.SaveChangesAsync();
             
@@ -52,36 +59,56 @@ namespace LandReal.Server.Repository
 
         public async Task<IEnumerable<Employee>> GetEmployees()
         {
-         return await _appDbContext.Employees.ToListAsync();
+         return await _appDbContext.Employees.Include(e => e.Department).ToListAsync();
         }
+
+        public async Task<EmployeeDataResult> GetEmployees(int skip , int take, string orderBy)
+        {
+            return new EmployeeDataResult()
+            {
+                Employees = _appDbContext.Employees.OrderBy(orderBy).Skip(skip).Take(take),
+                Count =await _appDbContext.Employees.CountAsync()
+            };
+           
+        }
+
 
         public async Task<IEnumerable<Employee>> Search(string name, Gender? gender)
         {
             IQueryable<Employee> query = _appDbContext.Employees;
             if (!string.IsNullOrEmpty(name))
             {
-                query.Where(e => e.FirstName.Contains(name) || e.LastName.Contains(name));
+               query= query.Where(e => e.FirstName.Contains(name) || e.LastName.Contains(name));
             }
             if(gender!= null)
             {
-                query.Where(e => e.Gender == gender);
+               query= query.Where(e => e.Gender == gender);
             }
 
             return await query.ToListAsync();
         }
-
+     
         public async Task<Employee> UpdateEmployee(Employee employee)
         {
-            var result =await _appDbContext.Employees.FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
+             var result =await _appDbContext.Employees.FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
+
             if (result != null)
             {
                 result.FirstName = employee.FirstName;
 
                 result.LastName = employee.LastName;
-                result.Email = employee.Email;
+                
                 result.DateOfBirth = employee.DateOfBirth;
                 result.Gender = employee.Gender;
-                result.DepartmentId = employee.DepartmentId;
+                if (employee.DepartmentId !=0)
+                {
+                    result.DepartmentId = employee.DepartmentId;
+                }
+                else if (employee.Department != null)
+                {
+                    result.DepartmentId = employee.Department.DepartmentId;
+                }
+                
                 result.PhotoPath = employee.PhotoPath;
 
                 await _appDbContext.SaveChangesAsync();

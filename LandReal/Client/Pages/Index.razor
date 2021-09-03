@@ -1,36 +1,77 @@
 ﻿@page "/"
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-material{
+        stroke: red;
+       
+    }
 
-<SfGrid DataSource="@Employess">
+</style>
+
+ <SfSpinner @bind-Visible="@SpinnerVisiblity" Label="@SpinnerLabel" Size="90" Type="@SpinnerType.Material"></SfSpinner>
+@if (Employees != null)
+{
+<SfGrid DataSource="@Employees" AllowPaging="true" AllowSorting="true" AllowMultiSorting="true">
+    <GridSortSettings AllowUnsort="false">
+        <GridSortColumns>
+            <GridSortColumn Field="EmployeeId" Direction="SortDirection.Descending"></GridSortColumn>
+            <GridSortColumn Field="FirstName" Direction="SortDirection.Ascending"></GridSortColumn>
+        </GridSortColumns>
+    </GridSortSettings>
+    <GridPageSettings PageSize="5" PageSizes="@PagerDropDown" PageCount="3"></GridPageSettings>
     <GridColumns>
-        <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID"></GridColumn>
+         <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID"></GridColumn>
         <GridColumn Field=@nameof(Employee.FirstName) HeaderText="First Name"></GridColumn>
         <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"></GridColumn>
         <GridColumn Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
-        <GridColumn Field=@nameof(Employee.Amount) HeaderText="Amount"></GridColumn>
+        <GridColumn AllowSorting="false" Field=@nameof(Employee.Amount) HeaderText="Amount"></GridColumn>
     </GridColumns>
 </SfGrid>
-@code{
-    public List<Employee> Employess { get; set; }
-
-    protected override void OnInitialized()
-    {
-        Employess = LoadData();
-    }
-
-    private List<Employee> LoadData()
-    {
-        Employee e1 = new Employee() { EmployeeId = 1, FirstName = "Wale", LastName = "Kingers", Email = "w@yahoo.com", DateOfBirth = new DateTime(1980, 10, 5), Gender = Gender.Male, Amount = 23000, Department = new Department { DepartmentId = 1, DepartmentName = "IT" }, PhotoPath = "images/wale.png" };
-
-
-        Employee e2 = new Employee() { EmployeeId = 2, FirstName = "sade", LastName = "Aperin", Email = "s@yahoo.com", DateOfBirth = new DateTime(1990, 10, 5), Gender = Gender.Female, Amount = 2000, Department = new Department { DepartmentId = 2, DepartmentName = "Control" }, PhotoPath = "images/sade.png" };
-
-
-        Employee e3 = new Employee() { EmployeeId = 1, FirstName = "John", LastName = "Friday", Email = "t@yahoo.com", DateOfBirth = new DateTime(2000, 10, 5), Gender = Gender.Male, Amount = 239000, Department = new Department { DepartmentId = 3, DepartmentName = "Marketing" }, PhotoPath = "images/tade.png" };
-
-        return new List<Employee> { e1, e2, e3 };
-    }
-
-
-   
-
 }
+
+
+
+    @code{
+        public List<Employee> Employees { get; set; }
+
+        public string[] PagerDropDown { get; set; } = new string[] { "All", "5", "10", "15", "20" };
+
+        [Inject]
+        public IEmployeeService employeeService { get; set; }
+
+        public bool SpinnerVisiblity { get; set; }
+
+        public string SpinnerLabel { get; set; } = "Loading fcmb records...";
+
+        protected override async Task OnInitializedAsync()
+        {
+
+            SpinnerVisiblity = true;
+            await Task.Delay(3000);
+            Employees =(await employeeService.GetEmployees()).ToList();
+            SpinnerVisiblity = Employees != null ? false : true;
+            SpinnerLabel = Employees == null ? "unable to load fcmb records contact admin !!!": SpinnerLabel;
+        }
+
+
+
+        #region InMemoryObject
+        //protected override void OnInitialized()
+        //{
+        //    Employess = LoadData();
+        //}
+
+        //private List<Employee> LoadData()
+        //{
+        //    Employee e1 = new Employee() { EmployeeId = 1, FirstName = "Wale", LastName = "Kingers", Email = "w@yahoo.com", DateOfBirth = new DateTime(1980, 10, 5), Gender = Gender.Male, Amount = 23000, Department = new Department { DepartmentId = 1, DepartmentName = "IT" }, PhotoPath = "images/wale.png" };
+
+
+        //    Employee e2 = new Employee() { EmployeeId = 2, FirstName = "sade", LastName = "Aperin", Email = "s@yahoo.com", DateOfBirth = new DateTime(1990, 10, 5), Gender = Gender.Female, Amount = 2000, Department = new Department { DepartmentId = 2, DepartmentName = "Control" }, PhotoPath = "images/sade.png" };
+
+
+        //    Employee e3 = new Employee() { EmployeeId = 1, FirstName = "John", LastName = "Friday", Email = "t@yahoo.com", DateOfBirth = new DateTime(2000, 10, 5), Gender = Gender.Male, Amount = 239000, Department = new Department { DepartmentId = 3, DepartmentName = "Marketing" }, PhotoPath = "images/tade.png" };
+
+        //    return new List<Employee> { e1, e2, e3 };
+        //}
+        #endregion
+
+    }

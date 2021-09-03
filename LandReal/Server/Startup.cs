@@ -46,7 +46,8 @@ namespace LandReal.Server
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlServer(connectionString);
+                options.UseSqlServer(connectionString)
+                        .EnableSensitiveDataLogging();
             });
         }
 

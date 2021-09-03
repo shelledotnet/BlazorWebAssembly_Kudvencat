@@ -1,0 +1,59 @@
+﻿@page "/filtering"
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-material {
+        stroke: red;
+    }
+</style>
+
+<SfSpinner @bind-Visible="@SpinnerVisiblity" Label="@SpinnerLabel" Size="90" Type="@SpinnerType.Material"></SfSpinner>
+@if (Employees != null)
+{
+<div style="width:700px">
+    <SfGrid DataSource="@Employees" AllowPaging="true" AllowFiltering="true">
+        <GridFilterSettings Mode="FilterBarMode.Immediate" ImmediateModeDelay="200">
+            <GridFilterColumns>
+                <GridFilterColumn Field="EmployeeId" Value="5" Operator="Operator.Equal"></GridFilterColumn>
+            </GridFilterColumns>
+
+        </GridFilterSettings>
+        
+        
+        
+        <GridColumns>
+            <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID"
+                        FilterSettings="@(new FilterSettings() {Operator=Operator.Equal})"></GridColumn>
+            <GridColumn Field=@nameof(Employee.FirstName) HeaderText="First Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"></GridColumn>
+            <GridColumn Format="d" Field=@nameof(Employee.DateOfBirth) HeaderText="Date Of Birth"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Gender) HeaderText="Gender"></GridColumn>
+            <GridColumn AllowFiltering="false" Field=@nameof(Employee.Amount) HeaderText="Amount"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
+}
+
+@code {
+    public List<Employee> Employees { get; set; }
+
+    
+
+    [Inject]
+    public IEmployeeService employeeService { get; set; }
+
+    public bool SpinnerVisiblity { get; set; }
+
+    public string SpinnerLabel { get; set; } = "Loading fcmb records...";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        SpinnerVisiblity = true;
+        await Task.Delay(3000);
+        Employees = (await employeeService.GetEmployees()).ToList();
+        SpinnerVisiblity = Employees != null ? false : true;
+        SpinnerLabel = Employees == null ? "unable to load fcmb records contact admin !!!" : SpinnerLabel;
+    }
+
+
+}

@@ -1,0 +1,79 @@
+﻿@page "/search"
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-material {
+        stroke: red;
+    }
+</style>
+
+<SfSpinner @bind-Visible="@SpinnerVisiblity" Label="@SpinnerLabel" Size="90" Type="@SpinnerType.Material"></SfSpinner>
+@if (Employees != null)
+{
+<div style="width:800px">
+    <SfGrid @ref="EmployeeGrid" DataSource="@Employees" AllowPaging="true">
+        <SfToolbar>
+            <ToolbarItems>
+                <ToolbarItem Type="ItemType.Input" Align="ItemAlign.Right">
+                    <Template>
+                        <SfTextBox @ref="SearchTextBox" Placeholder="Search" ></SfTextBox>
+                    </Template>
+                </ToolbarItem>
+                <ToolbarItem Type="ItemType.Button" Align="ItemAlign.Right">
+                    <Template>
+                        <SfButton Content="Search" OnClick="@SearchClick"></SfButton>
+                    </Template>
+                </ToolbarItem>
+            </ToolbarItems>
+        </SfToolbar>
+        <GridPageSettings PageSize="5"></GridPageSettings>
+        <GridSearchSettings Key="Female" Operator="Operator.Equal" ></GridSearchSettings>
+        <GridColumns>
+            <GridColumn Field=@nameof(Employee.EmployeeId) HeaderText="ID"></GridColumn>
+            <GridColumn Field=@nameof(Employee.FirstName) HeaderText="First Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
+            <GridColumn Format="d" EnableGroupByFormat="true" Field=@nameof(Employee.DateOfBirth) HeaderText="Date Of Birth"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Gender) HeaderText="Gender"></GridColumn>
+            <GridColumn AllowSearching="false" Field=@nameof(Employee.Amount) HeaderText="Amount-(N)"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
+}
+
+@code {
+    public List<Employee> Employees { get; set; }
+
+    public List<string> SearchTool { get; set; } = new List<string>() { "Search" };
+    public string[] SearchColumns { get; set; } = new string[] { "FirstName", "LastName" };
+
+    [Inject]
+    public IEmployeeService employeeService { get; set; }
+
+    public SfGrid<Employee> EmployeeGrid { get; set; }
+
+    public SfTextBox SearchTextBox { get; set; }
+    public bool SpinnerVisiblity { get; set; }
+
+    public string SpinnerLabel { get; set; } = "Loading fcmb records...";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        SpinnerVisiblity = true;
+        await Task.Delay(3000);
+        Employees = (await employeeService.GetEmployees()).ToList();
+        SpinnerVisiblity = Employees != null ? false : true;
+        SpinnerLabel = Employees == null ? "unable to load fcmb records contact admin !!!" : SpinnerLabel;
+    }
+
+    private async void OnInput(InputEventArgs args)
+    {
+        await this.EmployeeGrid.SearchAsync(args.Value);
+    }
+
+    private async void SearchClick()
+    {
+        await this.EmployeeGrid.SearchAsync(SearchTextBox.Value);
+    }
+
+
+}
