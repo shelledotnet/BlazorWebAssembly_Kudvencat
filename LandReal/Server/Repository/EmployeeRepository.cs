@@ -13,18 +13,28 @@ namespace LandReal.Server.Repository
     public class EmployeeRepository : IEmployeeRepository
     {
         private readonly AppDbContext _appDbContext;
-       
-        
-        public EmployeeRepository(AppDbContext appDbContext)
+        private readonly IDepartmentRepository departmentRepository;
+
+        public EmployeeRepository(AppDbContext appDbContext,IDepartmentRepository departmentRepository)
         {
             this._appDbContext = appDbContext;
-          
+            this.departmentRepository = departmentRepository;
         }
         public async Task<Employee> AddEmployee(Employee employee)
         {
-            if (employee.Department !=null)
+            if (employee.DepartmentId == 0)
             {
-                _appDbContext.Entry(employee.Department).State = EntityState.Unchanged;
+                throw new Exception("employee department id cannot be zero");
+            }
+            else
+            {
+              Department dept=  await departmentRepository.GetDepartment(employee.DepartmentId);
+                if (dept==null)
+                {
+                    throw new Exception($"Invalid department id {employee.DepartmentId}");
+                }
+
+                employee.Department = dept;
             }
 
             var result = await _appDbContext.Employees.AddAsync(employee);

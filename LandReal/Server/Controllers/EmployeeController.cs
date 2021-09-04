@@ -106,7 +106,7 @@ namespace LandReal.Server.Controllers
         public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
         {
             try
-            {
+             {
                 if (employee == null)
                     return BadRequest();
                 var emp = await _employeeRepository.GetEmployeeByEmail(employee.Email);
@@ -120,7 +120,7 @@ namespace LandReal.Server.Controllers
 
             }
             catch (Exception ex)
-            {
+             {
 
                 //log error
                 //return StatusCode(500, ex.Message);
