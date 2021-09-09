@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LandReal.Shared.Utilities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -16,10 +17,17 @@ namespace LandReal.Shared
         [Required]
         [MinLength(2,ErrorMessage ="FirstName must contain at least 2 characters")]
         public string FirstName { get; set; }
-
         [Required]
         public string LastName { get; set; }
+
+        [Required]
+        [EmailAddress]
+        [AllowedEmailDomain("dell.com")]
         public string Email { get; set; }
+
+        [DisplayFormat(DataFormatString ="d",ApplyFormatInEditMode =true)]
+        [Editable(false)]
+        [Display(Name ="DOB")]
         public DateTime DateOfBirth { get; set; }
         public Gender Gender { get; set; }
         public string PhotoPath { get; set; }

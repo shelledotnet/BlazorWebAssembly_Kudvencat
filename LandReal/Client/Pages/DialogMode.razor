@@ -1,0 +1,132 @@
+﻿@page "/dialogMode"
+
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-material {
+        stroke: red;
+    }
+</style>
+
+<SfSpinner @bind-Visible="@SpinnerVisiblity" Label="@SpinnerLabel" Size="90" Type="@SpinnerType.Material"></SfSpinner>
+@if (Employees != null)
+{
+    <SfGrid @ref="@EmployeeGrid" DataSource="@Employees" AllowPaging="true" Toolbar="@(new List<string>() {"Add","Edit","Update","Delete","Cancle" })">
+        <GridEditSettings Mode="EditMode.Dialog" AllowAdding="true" AllowEditing="true" AllowDeleting="true">
+            <HeaderTemplate>
+                <span>@GetHeaderText(context as Employee)</span>
+            </HeaderTemplate>
+            <FooterTemplate>
+                <SfButton OnClick="Save" IsPrimary="true">@SaveButtonText</SfButton>
+                <SfButton OnClick="Cancle">Cancle</SfButton>
+            </FooterTemplate>
+        </GridEditSettings>
+        <GridPageSettings PageSize="5"></GridPageSettings>
+        <GridEvents OnActionBegin="ActionBeginHandler" TValue="Employee"></GridEvents>
+        <GridColumns>
+            <GridColumn AllowAdding="false" IsPrimaryKey="true" Field=@nameof(Employee.EmployeeId) HeaderText="ID"></GridColumn>
+            <GridColumn AllowEditing="false" Field=@nameof(Employee.FirstName) HeaderText="First Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.LastName) HeaderText="Last Name"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Email) HeaderText="Email"></GridColumn>
+            <GridColumn Format="d" EnableGroupByFormat="true" Field=@nameof(Employee.DateOfBirth) HeaderText="Date Of Birth"></GridColumn>
+            <GridColumn Field=@nameof(Employee.Gender) HeaderText="Gender">
+                <EditTemplate>
+                    <SfDropDownList DataSource="@GenderEnumValues" TItem="string" TValue="Gender"
+                                    @bind-Value="@((context as Employee).Gender)" >
+                        @* <DropDownListFieldSettings Text="DepartmentName" Value="DepartmentId"></DropDownListFieldSettings>*@
+                    </SfDropDownList>
+                </EditTemplate>
+
+
+            </GridColumn>
+
+            <GridColumn Field="Department.DepartmentName" HeaderText="Department">
+                <EditTemplate>
+                    <SfDropDownList DataSource="@Departments" TItem="Department" TValue="int"
+                                    @bind-Value="@((context as Employee).DepartmentId)">
+                        <DropDownListFieldSettings Text="DepartmentName" Value="DepartmentId"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                </EditTemplate>
+
+            </GridColumn>
+            <GridColumn Field=@nameof(Employee.Amount) HeaderText="Amount-(N)"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+}
+
+
+@code {
+    public List<Employee> Employees { get; set; }
+    public List<Department> Departments { get; set; }
+    public string[] GenderEnumValues { get; set; } = Enum.GetNames(typeof(Gender));
+    public SfGrid<Employee> EmployeeGrid { get; set; }  //proptery that referenced the data grid
+    [Inject]
+    public IEmployeeService employeeService { get; set; }
+
+    [Inject]
+    public IDepartmentService departmentService { get; set; }
+
+    public bool SpinnerVisiblity { get; set; }
+    public string SaveButtonText { get; set; }
+
+    public string SpinnerLabel { get; set; } = "Loading fcmb records...";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        SpinnerVisiblity = true;
+        await Task.Delay(3000);
+        Employees = (await employeeService.GetEmployees()).ToList();
+        Departments = (await departmentService.GetAllDepartments()).ToList();
+        SpinnerVisiblity = Employees != null ? false : true;
+        SpinnerLabel = Employees == null ? "unable to load fcmb records contact admin !!!" : SpinnerLabel;
+    }
+
+    public async void ActionBeginHandler(ActionEventArgs<Employee> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            if (args.Action == "Add")
+            {
+                await employeeService.AddEmployee(args.Data);
+                Employees = (await employeeService.GetEmployees()).ToList();  //reload the data
+                EmployeeGrid.Refresh();//after reloading the data above referesh the data
+            }
+            else
+            {
+                await employeeService.UpdateEmployee(args.Data);
+            }
+        }
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+        {
+
+            await employeeService.DeleteEmployee(args.Data.EmployeeId);
+
+        }
+    }
+
+    public string GetHeaderText(Employee employee)
+    {
+        if (employee.EmployeeId==0)
+        {
+            SaveButtonText = "Add Employee";
+            return $"Add New Employee";
+        }
+        else
+        {
+            SaveButtonText = "Update Employee";
+            return $"Edit Employee {employee.FirstName} Details";
+        }
+    }
+
+    public async Task Cancle()
+    {
+        await EmployeeGrid.CloseEditAsync();
+    }
+    public async Task Save()
+    {
+        await EmployeeGrid.EndEditAsync();
+    }
+
+
+
+
+}

@@ -134,19 +134,19 @@ namespace LandReal.Server.Controllers
             try
             {
                 if (id != employee.EmployeeId)
-                    return BadRequest("Employee Id Mismatch");
+                    return BadRequest("Employee id mismatch");
                var result=await _employeeRepository.GetEmployee(id);
                 if (result == null)
                 {
-                    return NotFound($"Employee with an {id} doesnt exist");
+                    return NotFound($"Employee with an {id} doesn't exist");
                 }
-                var emp = await _employeeRepository.UpdateEmployee(employee);
-                if (emp == null)
-                {
-                    ModelState.AddModelError("Error", "Employee email already in use");
-                    return BadRequest(ModelState);
-                }
-                return NoContent();
+                return await _employeeRepository.UpdateEmployee(employee);
+                //if (emp == null)
+                //{
+                //    ModelState.AddModelError("Error", "Employee email already in use");
+                //    return BadRequest(ModelState);
+                //}
+                
             }
             catch (Exception ex)
             {

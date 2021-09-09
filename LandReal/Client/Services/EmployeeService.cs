@@ -17,14 +17,15 @@ namespace LandReal.Client.Services
             _httpClient = httpClient;
         }
 
-        public Task<Employee> AddEmployee(Employee employee)
+        public async Task<Employee> AddEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+            var response = await _httpClient.PostAsJsonAsync<Employee>($"/api/employee", employee);
+            return await response.Content.ReadFromJsonAsync<Employee>();
         }
 
-        public Task DeleteEmployee(int employeeId)
+        public async Task DeleteEmployee(int employeeId)
         {
-            throw new NotImplementedException();
+            await _httpClient.DeleteAsync($"/api/employee/{employeeId}");
         }
 
         public Task<Employee> GetEmployee(int employeeId)
@@ -53,9 +54,10 @@ namespace LandReal.Client.Services
             throw new NotImplementedException();
         }
 
-        public Task<Employee> UpdateEmployee(Employee employee)
+        public async Task<Employee> UpdateEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+            var response = await _httpClient.PutAsJsonAsync<Employee>($"api/employee/{employee.EmployeeId}", employee);
+            return await response.Content.ReadFromJsonAsync<Employee>();
         }
     }
 }
